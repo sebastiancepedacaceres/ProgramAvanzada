@@ -1,0 +1,137 @@
+@startuml
+title Starfighter Project - UML Diagram
+
+' Packages
+package "controllers" {
+    class StarfighterGameEngine {
+        - currentGame: GameState
+        - renderer: ConsoleRenderer
+        + play(r:int, c:int, m1:int, m2:int)
+        + move(vertical:int, horizontal:int)
+        + fire()
+        + pass()
+        + abort()
+        + displaceProjectiles()
+    }
+}
+
+package "models" {
+    class GameState {
+        - board: Board
+        - starfighter: Starfighter
+        - projectiles: List<Entity>
+        - gameOver: boolean
+        + getBoard(): Board
+        + getStarfighter(): Starfighter
+        + getProjectiles(): List<Entity>
+        + isGameOver(): boolean
+        + setGameOver(value: boolean)
+        + checkColision(): boolean
+        + clone(): GameState
+        + equals(Object o): boolean
+    }
+
+    class Board {
+        - rows: int
+        - columns: int
+        - grid: char[][]
+        + EMPTY: char
+        + STARFIGHTER: char
+        + PROJECTILE: char
+        + COLLISION: char
+        - initializeGrid()
+        + getRow(): int
+        + getColumn(): int
+        + isWithinBounds(row:int, col:int): boolean
+        + isEmpty(row:int, col:int): boolean
+        + placeEntity(row:int, col:int, symbol:char)
+        + getCellContent(row:int, col:int): char
+        + clearCell(row:int, col:int)
+        + clearBoard()
+        + clone(): Board
+        + equals(Object o): boolean
+     
+     }
+}
+
+package "models.commands" {
+    interface Command {
+        + execute(state: GameState): GameState
+    }
+
+    class MoveCommand {
+        - vertical: int
+        - horizontal: int
+        - maxMoves: int
+        + execute(state: GameState): GameState
+    }
+
+    class FireCommand {
+        + execute(state: GameState): GameState
+    }
+
+    class PassCommand {
+        + execute(state: GameState)
+    }
+
+    class AbortCommand {
+        + execute(state: GameState)
+    }
+
+    class displaceProjectilesCommand {
+        - projectileMoves: int
+        + execute(state: GameState)
+    }
+}
+
+package "models.entities" {
+    class Starfighter extends Entity{
+        + destroy()
+        + equals(Object o): boolean
+    }
+
+    class Projectile extends Entity {
+    + equals(Object o): boolean
+    }
+
+    abstract class Entity {
+        - row: int
+        - column: int
+        + getRow(): int
+        + getColumn(): int
+        + move(row: int, column: int)
+        
+    }
+
+    interface EntityFactory {
+        + createProjectile(row:int, col:int, m2:int): Entity
+    }
+    
+    class ProjectileFactory implements EntityFactory {
+       + createProjectile(row:int, col:int, m2:int): Entity
+    }
+}
+
+package "view" {
+    class ConsoleRenderer {
+        + render(state: GameState)
+    }
+}
+
+' Relationships
+StarfighterGameEngine --> GameState
+StarfighterGameEngine --> ConsoleRenderer
+GameState --> Board
+GameState --> Starfighter
+GameState "1" --> "*" Entity
+
+Command <|.. MoveCommand
+Command <|.. FireCommand
+Command <|.. PassCommand
+Command <|.. AbortCommand
+Command <|.. displaceProjectilesCommand
+
+FireCommand -> ProjectileFactory
+ProjectileFactory --> Projectile
+
+@enduml
